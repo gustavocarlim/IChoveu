@@ -119,7 +119,35 @@ export function handleSearch(event) {
 
   searchCities(searchValue)
     .then((data) => {
-      console.log(data);
+      if (data.length === 0 || !searchValue) {
+        console.error('Nenhuma cidade encontrada');
+        return;
+      }
+
+      const cityURLs = data.map((city) => city.url);
+
+      const weatherRequests = cityURLs.map((cityURL) => getWeatherByCity(cityURL));
+
+      Promise.all(weatherRequests)
+        .then((weatherDataArray) => {
+          weatherDataArray.forEach((weatherData, index) => {
+            const cityInfo = {
+              name: data[index].name,
+              country: data[index].country,
+              temp: weatherData.temp,
+              condition: weatherData.condition,
+              icon: weatherData.icon,
+              url: data[index].url,
+            };
+
+            const cityElement = createCityElement(cityInfo);
+            const citiesList = document.getElementById('cities');
+            citiesList.appendChild(cityElement);
+          });
+        })
+        .catch((error) => {
+          console.error('Erro ao obter dados do clima:', error);
+        });
     })
     .catch((error) => {
       console.error('Erro ao pesquisar cidades:', error);
