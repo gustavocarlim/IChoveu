@@ -77,7 +77,7 @@ export function showForecast(forecastList) {
  * Recebe um objeto com as informações de uma cidade e retorna um elemento HTML
  */
 export function createCityElement(cityInfo) {
-  const { name, country, temp, condition, icon /* , url */ } = cityInfo;
+  const { name, country, temp, condition, icon, url } = cityInfo;
 
   const cityElement = createElement('li', 'city');
 
@@ -101,8 +101,20 @@ export function createCityElement(cityInfo) {
   infoContainer.appendChild(tempContainer);
   infoContainer.appendChild(iconElement);
 
+  const buttonElement = createElement('button', 'forecast-button', 'Ver previsão');
+  buttonElement.addEventListener('click', () => {
+    getForecastByCity(url)
+      .then((forecastData) => {
+        showForecast(forecastData);
+      })
+      .catch((error) => {
+        console.error('Erro ao obter previsão do tempo:', error);
+      });
+  });
+
   cityElement.appendChild(headingElement);
   cityElement.appendChild(infoContainer);
+  cityElement.appendChild(buttonElement);
 
   return cityElement;
 }
