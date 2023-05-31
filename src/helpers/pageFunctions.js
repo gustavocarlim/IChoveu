@@ -1,5 +1,6 @@
 import { searchCities, getWeatherByCity } from './weatherAPI';
 
+const TOKEN = import.meta.env.VITE_TOKEN;
 /**
  * Cria um elemento HTML com as informações passadas
  */
@@ -72,10 +73,32 @@ export function showForecast(forecastList) {
 
   forecastContainer.classList.remove('hidden');
 }
+export function getForecastByCity(cityURL) {
+  const forecastURL = `http://api.weatherapi.com/v1/forecast.json?lang=pt&key=${TOKEN}&q=${cityURL}&days=7`;
 
+  fetch(forecastURL)
+    .then((response) => response.json())
+    .then((data) => {
+      const forecastData = data.forecast.forecastday.map((day) => {
+        return {
+          date: day.date,
+          maxTemp: day.day.maxtemp_c,
+          minTemp: day.day.mintemp_c,
+          condition: day.day.condition.text,
+          icon: day.day.condition.icon,
+        };
+      });
+
+      showForecast(forecastData);
+    })
+    .catch((error) => {
+      console.error('Erro ao obter previsão do tempo:', error);
+    });
+}
 /**
  * Recebe um objeto com as informações de uma cidade e retorna um elemento HTML
  */
+
 export function createCityElement(cityInfo) {
   const { name, country, temp, condition, icon, url } = cityInfo;
 
@@ -101,24 +124,18 @@ export function createCityElement(cityInfo) {
   infoContainer.appendChild(tempContainer);
   infoContainer.appendChild(iconElement);
 
-  const buttonElement = createElement('button', 'forecast-button', 'Ver previsão');
-  buttonElement.addEventListener('click', () => {
-    getForecastByCity(url)
-      .then((forecastData) => {
-        showForecast(forecastData);
-      })
-      .catch((error) => {
-        console.error('Erro ao obter previsão do tempo:', error);
-      });
+  // Botão "Ver previsão"
+  const forecastButton = createElement('button', 'forecast-button', 'Ver previsão');
+  forecastButton.addEventListener('click', () => {
+    getForecastByCity(url);
   });
 
   cityElement.appendChild(headingElement);
   cityElement.appendChild(infoContainer);
-  cityElement.appendChild(buttonElement);
+  cityElement.appendChild(forecastButton);
 
   return cityElement;
 }
-
 /**
  * Lida com o evento de submit do formulário de busca
  */
